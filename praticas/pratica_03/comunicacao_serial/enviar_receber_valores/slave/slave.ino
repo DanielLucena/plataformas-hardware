@@ -3,26 +3,22 @@ SoftwareSerial ArduinoMaster(10, 11);
 #define ledPin 12
 String msg = "";
 int ledVal = 0;
-int intVal = 0, oldIntVal = 0, btnState = 0;
-
+int intVal = 0, oldIntVal = 0;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   ArduinoMaster.begin(9600);
   pinMode(ledPin, OUTPUT);
-  //  digitalWrite(ledPin,HIGH);
-  //  delay(1000);
-  //  digitalWrite(ledPin,LOW);
+//  digitalWrite(ledPin,HIGH);
+//  delay(1000);
+//  digitalWrite(ledPin,LOW);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   readMasterPort();
   convertMsgToCmd();
-  if(btnState){
-    intVal = 10;
-  }
   // Send answer to master
   if (intVal != oldIntVal) {
     Serial.print("Master sent : ");
@@ -50,18 +46,12 @@ void readMasterPort() {
 
 void convertMsgToCmd() {
   if (msg.length() > 0) {
-    Serial.print("message is: " + msg);
     Serial.print("message length : ");
     Serial.println(msg.length());
 
-    //    char carray1[6]; //magic needed to convert string to a number
-    //    msg.toCharArray(carray1, sizeof(carray1));
-    //    intVal = atoi(carray1);
-
-    intVal = msg.substring(0, msg.indexOf(',')).toInt();
-    btnState = msg.substring(msg.indexOf(',') + 1).toInt();
-    Serial.println("primeiro: " + String(intVal));
-    Serial.println("segundo: " + String(btnState));
+    char carray1[6]; //magic needed to convert string to a number
+    msg.toCharArray(carray1, sizeof(carray1));
+    intVal = atoi(carray1);
     msg = "";
   }
 }
