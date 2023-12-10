@@ -1,5 +1,5 @@
 #include <ESP32Servo.h>
-#define PIN_SERVO 2
+#define PIN_SERVO 26
 Servo myServo;
 
 void setup() {
