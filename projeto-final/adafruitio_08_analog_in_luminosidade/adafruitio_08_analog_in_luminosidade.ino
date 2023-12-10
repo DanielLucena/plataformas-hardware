@@ -1,5 +1,5 @@
-// Adafruit IO Digital Output Example
-// Tutorial Link: https://learn.adafruit.com/adafruit-io-basics-digital-output
+// Adafruit IO Analog In Example
+// Tutorial Link: https://learn.adafruit.com/adafruit-io-basics-analog-input
 //
 // Adafruit invests time and resources providing this open source code.
 // Please support Adafruit and open source hardware by purchasing
@@ -20,16 +20,18 @@
 
 /************************ Example Starts Here *******************************/
 
-// digital pin 5
-#define LED_PIN 2
+// analog pin 0
+#define PHOTOCELL_PIN 2
 
-// set up the 'digital' feed
-AdafruitIO_Feed *digital = io.feed("luminosidade");
+// photocell state
+int current = 0;
+int last = -1;
+
+// set up the 'analog' feed
+AdafruitIO_Feed *analog = io.feed("luminosidade");
 
 void setup() {
-  
-  pinMode(LED_PIN, OUTPUT);
-  
+
   // start the serial connection
   Serial.begin(115200);
 
@@ -40,12 +42,6 @@ void setup() {
   Serial.print("Connecting to Adafruit IO");
   io.connect();
 
-  // set up a message handler for the 'digital' feed.
-  // the handleMessage function (defined below)
-  // will be called whenever a message is
-  // received from adafruit io.
-  digital->onMessage(handleMessage);
-
   // wait for a connection
   while(io.status() < AIO_CONNECTED) {
     Serial.print(".");
@@ -55,7 +51,6 @@ void setup() {
   // we are connected
   Serial.println();
   Serial.println(io.statusText());
-  digital->get();
 
 }
 
@@ -67,20 +62,26 @@ void loop() {
   // io.adafruit.com, and processes any incoming data.
   io.run();
 
-}
+  // grab the current state of the photocell
+  current = analogRead(PHOTOCELL_PIN);
+  Serial.print("valor ldr: ");
+  Serial.println(current);
 
-// this function is called whenever an 'digital' feed message
-// is received from Adafruit IO. it was attached to
-// the 'digital' feed in the setup() function above.
-void handleMessage(AdafruitIO_Data *data) {
+  // return if the value hasn't changed
+  // if(current == last)
+  //   return;
 
-  Serial.print("received <- ");
+  // save the current state to the analog feed
+  Serial.print("sending -> ");
+  Serial.println(current);
+  analog->save(current);
 
-  if(data->toPinLevel() == HIGH)
-    Serial.println("HIGH");
-  else
-    Serial.println("LOW");
+  // store last photocell state
+  last = current;
 
-
-  digitalWrite(LED_PIN, data->toPinLevel());
+  // wait three seconds (1000 milliseconds == 1 second)
+  //
+  // because there are no active subscriptions, we can use delay()
+  // instead of tracking millis()
+  delay(3000);
 }
