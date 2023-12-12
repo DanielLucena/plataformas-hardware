@@ -2,6 +2,7 @@
 #include <IRremote.h>
 
 
+
 #define RECEIVER_PIN D5
 IRrecv receiver(RECEIVER_PIN);
 decode_results results;
@@ -19,7 +20,7 @@ void loop() {
   if (receiver.decode(&results)) {
     Serial.println(results.value, HEX);
 
-    if (results.value == 0xE9E70E8C) {
+    if (results.value == 0x97680707) {
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     }
     receiver.resume();
