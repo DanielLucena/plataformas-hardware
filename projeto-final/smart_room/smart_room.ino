@@ -44,8 +44,8 @@ const int daylightOffset_sec = 0;
 
 const char *time_zone = "CET-1CEST,M3.5.0,M10.5.0/3";  // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 
-int alarmeH = 11;
-int alarmeM = 20;
+int alarmeH = 17;
+int alarmeM = 1;
 
 
 
@@ -152,8 +152,8 @@ void loop() {
       cortina->save(cortinaState);
 
     }
-    printLocalTime();
-    checkAlarme();
+    //printLocalTime();
+    //checkAlarme();
 
     // store last button state
     //lastLDR = currentLDR;
@@ -223,16 +223,22 @@ void timeavailable(struct timeval *t) {
 
 //retorna true se ja passou da hora do alarme
 bool checkAlarme(){
+  getLocalTime(&timeinfo);
   int timeH = timeinfo.tm_hour;
   int timeM = timeinfo.tm_min;
-  Serial.print("tm_hour");
-  Serial.println(timeH);
-  Serial.print("tm_min");
+  // Serial.print("tm_hour: ");
+  // Serial.println(timeH);
+  Serial.print("tm_min: ");
   Serial.println(timeM);
-  if(timeH > alarmeH && timeM > alarmeM){
+  // Serial.print("alarmeH: ");
+  // Serial.println(alarmeH);
+  Serial.print("alarmeM: ");
+  Serial.println(alarmeM);
+  //timeH > alarmeH &&
+  if(timeH == alarmeH && timeM == alarmeM){
     return true;
   }
-  false;
+  return false;
 
 }
 
