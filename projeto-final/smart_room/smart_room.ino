@@ -34,8 +34,8 @@ String s;
 
 struct tm timeinfo;
 
-const char *ssid = "ssid";
-const char *password = "password";
+// const char *ssid = "ssid";
+// const char *password = "password";
 
 const char *ntpServer1 = "pool.ntp.org";
 const char *ntpServer2 = "time.nist.gov";
@@ -44,6 +44,7 @@ const int daylightOffset_sec = 0;
 
 const char *time_zone = "CET-1CEST,M3.5.0,M10.5.0/3";  // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 
+//definir o horario do alarme pela hora e minuto
 int alarmeH = 17;
 int alarmeM = 1;
 
@@ -52,7 +53,6 @@ int alarmeM = 1;
 #define LED_BUILTIN 2
 
 void setup() {
-  // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
 
@@ -61,17 +61,14 @@ void setup() {
 
   //para servo motor
   pinMode(PIN_CORTINA, OUTPUT);
-  // myServo.attach(PIN_SERVO);
-  // myServo.write(0);
 
   //para ldr
   pinMode(LDR_PIN, INPUT);
 
-
   //para spiffs
   openFS();
   String ultimoRegistro = readFile("/led_state.txt");  // Lê do arquivo de logs e armazena, na variável, o último registro presente no arquivo.
-  cortinaState = ultimoRegistro.toInt();                      // Converte o caracter inicial do registro ('0' ou '1') para Int.
+  cortinaState = ultimoRegistro.toInt();               // Converte o caracter inicial do registro ('0' ou '1') para Int.
   digitalWrite(PIN_CORTINA, cortinaState);
 
   //para ntp
@@ -87,10 +84,7 @@ void setup() {
   Serial.print("Connecting to Adafruit IO");
   io.connect();
 
-  // set up a message handler for the 'digital' feed.
-  // the handleMessage function (defined below)
-  // will be called whenever a message is
-  // received from adafruit io.
+  // handler para Ar condicionado e Cortina
   ac->onMessage(handleAC);
   cortina->onMessage(handleCortina);
 
@@ -118,52 +112,45 @@ void SwitchAC() {
   IrSender.sendSamsung(0x707, 0x68, 0);
   delay(2000);
 }
+
+
 unsigned long lastTime = millis();
 
 void loop() {
-  //SwitchCortina();
-  //delay(1000);
-  // SwitchAC();
 
-
-  // delay(5000);
   io.run();
-  //Serial.println("IO RUN");
 
   if (millis() > lastTime + 30000) {
     currentLDR = analogRead(LDR_PIN);
     Serial.print("valor ldr: ");
     Serial.println(currentLDR);
 
-    // save the current state to the 'digital' feed on adafruit io
+    // salva no adafruit o valor do LDR pelo feed "luminosidade"
     Serial.print("sending ldr -> ");
     Serial.println(currentLDR);
     luminosidade->save(currentLDR);
-    if(currentLDR >= LDRWarning && !checkAlarme()){
+
+    //checa para fechar cortina
+    if (currentLDR >= LDRWarning && !checkAlarme()) {
       digitalWrite(PIN_CORTINA, HIGH);
       cortinaState = 1;
       cortina->save(cortinaState);
     }
-    if(checkAlarme()){
+
+    //checa horario do alarme
+    if (checkAlarme()) {
       Serial.println("alarme tocou");
       SwitchAC();
       digitalWrite(PIN_CORTINA, LOW);
       cortinaState = 0;
       cortina->save(cortinaState);
-
     }
-    //printLocalTime();
-    //checkAlarme();
-
-    // store last button state
-    //lastLDR = currentLDR;
     lastTime = millis();
   }
 
 
-
-  // delay(30000);
 }
+
 
 void handleAC(AdafruitIO_Data *data) {
 
@@ -188,7 +175,7 @@ void handleCortina(AdafruitIO_Data *data) {
     cortinaState = 0;
 
   digitalWrite(PIN_CORTINA, data->toPinLevel());
-  stateStr = String(data->toPinLevel()); // Convertendo de Int para String.
+  stateStr = String(data->toPinLevel());  // Convertendo de Int para String.
   writeFile(stateStr, "/led_state.txt");
 }
 
@@ -222,24 +209,15 @@ void timeavailable(struct timeval *t) {
 }
 
 //retorna true se ja passou da hora do alarme
-bool checkAlarme(){
+bool checkAlarme() {
   getLocalTime(&timeinfo);
   int timeH = timeinfo.tm_hour;
   int timeM = timeinfo.tm_min;
-  // Serial.print("tm_hour: ");
-  // Serial.println(timeH);
-  Serial.print("tm_min: ");
-  Serial.println(timeM);
-  // Serial.print("alarmeH: ");
-  // Serial.println(alarmeH);
-  Serial.print("alarmeM: ");
-  Serial.println(alarmeM);
-  //timeH > alarmeH &&
-  if(timeH == alarmeH && timeM == alarmeM){
+
+  if (timeH == alarmeH && timeM == alarmeM) {
     return true;
   }
   return false;
-
 }
 
 //SPIFFS functions
